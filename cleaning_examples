@@ -1,0 +1,45 @@
+---
+title: "test"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Cleaning tables 
+```{r}
+setwd("C:/Users/hanauem/OneDrive - PPD/examples/Checkmate/1_27_21_task")
+test_dat = read.csv("Table_14.3.2.1.1.1.csv", header= TRUE)
+dim(test_dat)
+library(dplyr)
+library(reshape2)
+test_dat_clean = test_dat %>%
+  filter(ï..Domain != "Domain") %>%
+  select(-c(p.value..a., X, X.1, ï..Domain, Subgroup, Visit)) %>%
+  slice(-c(756:757)) %>%
+  filter(Arm == "Diff") %>%
+  mutate(p.value..b. = if_else(p.value..b. == "<.001", ".0001", p.value..b.)) %>%
+  mutate(p.value..b. = as.numeric(p.value..b.)) %>%
+  filter(p.value..b. < .05) 
+  ## Change <.001 back
+  #mutate(p.value..b. = if_else(p.value..b. == .0001, "<.001", p.value..b.))
+### Out of Dplyr  
+ci = colsplit(test_dat_clean$X95..CI, ",", c("ci_lower", "ci_upper"))
+ci = round(ci, 2)
+ci
+ci = paste0("[", ci$ci_lower, ",", ci$ci_upper, "]")
+### If you want to keep the original CI then don't overwrite it
+test_dat_clean$X95..CI = ci
+test_dat_clean$p.value..b. = ifelse(test_dat_clean$p.value..b. == .0001, "<.001", test_dat_clean$p.value..b.)
+```
+Tests 
+```{r}
+test_d = data.frame(a = c("<.001"))
+test_d =  test_d %>%
+    mutate(a = if_else(a == "<.001", "0.001", a))
+test_d$a = as.numeric(test_d$a) 
+test_d$a = ifelse(test_d$a == 0.001, "<.001", a)
+test_d
+```
+
